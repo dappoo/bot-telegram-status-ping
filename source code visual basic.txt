@@ -1,0 +1,121 @@
+Function Ping(strip)
+Dim objshell, boolcode
+Set objshell = CreateObject("Wscript.Shell")
+boolcode = objshell.Run("ping -n 1 -w 1000 " & strip, 0, True)
+If boolcode = 0 Then
+    Ping = True
+Else
+    Ping = False
+End If
+End Function
+
+Sub PingSystem()
+Dim strip As String
+Dim strChatID As String
+Dim strMessage As String
+Dim strPostData As String
+Dim strPingResult As String
+Dim objreqq As Object
+Dim strchtt As String
+Dim strmesgg As String
+Dim strpostt As String
+
+strchtt = Sheets("DATA").Range("B2").Value
+strmesgg = "bot status is online"
+strpostt = "chat_id=" & strchtt & "&text=" & strmesgg
+Set objreqq = CreateObject("MSXML2.XMLHTTP")
+With objreqq
+    .Open "POST", "https://api.telegram.org/bot1768642893:AAEpULFFTACJ-embQvIfEhymANLIyDwFfAM/sendMessage?", False
+    .setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+    .send (strpostt)
+    End With
+
+strChatID = Sheets("DATA").Range("B2").Value
+
+
+Do Until Sheet1.Range("F1").Value = "STOP"
+Sheet1.Range("F1").Value = "Running"
+For introw = 2 To ActiveSheet.Cells(65536, 2).End(xlUp).Row
+    strip = ActiveSheet.Cells(introw, 2).Value
+    If Ping(strip) = True Then
+        strPingResult = " Online"
+        
+        ActiveSheet.Cells(introw, 3).Interior.ColorIndex = 0
+        ActiveSheet.Cells(introw, 3).Font.Color = RGB(0, 0, 0)
+        ActiveSheet.Cells(introw, 3).Value = "Online"
+        Application.Wait (Now + TimeValue("0:00:01"))
+        ActiveSheet.Cells(introw, 3).Font.Color = RGB(0, 200, 0)
+        
+        ' Send Message
+        x = Sheets("DATA").Cells(introw, 1).Value
+        
+        strMessage = ActiveSheet.Cells(introw, 1).Value & " " & ActiveSheet.Cells(introw, 2).Value & " is " & strPingResult
+        strPostData = "chat_id=" & strChatID & "&text=" & strMessage
+        
+        'Send a messeage if changed
+        If x = 2 Then
+            SendMessage (strPostData)
+        End If
+        
+        Sheets("DATA").Cells(introw, 1).Value = 1
+    Else
+        strPingResult = " Offline"
+        
+        
+        ActiveSheet.Cells(introw, 3).Interior.ColorIndex = 0
+        ActiveSheet.Cells(introw, 3).Font.Color = RGB(200, 0, 0)
+        ActiveSheet.Cells(introw, 3).Value = "Offline"
+        Application.Wait (Now + TimeValue("0:00:01"))
+        ActiveSheet.Cells(introw, 3).Interior.ColorIndex = 6
+        
+        ' Send Message
+        x = Sheets("DATA").Cells(introw, 1).Value
+        
+        strMessage = ActiveSheet.Cells(introw, 1).Value & " " & ActiveSheet.Cells(introw, 2).Value & " is " & strPingResult
+        strPostData = "chat_id=" & strChatID & "&text=" & strMessage
+        
+        'Send a messeage if changed
+        If x = 1 Then
+            SendMessage (strPostData)
+        End If
+        
+        Sheets("DATA").Cells(introw, 1).Value = 2
+    End If
+    If Sheet1.Range("F1").Value = "STOP" Then
+        Exit For
+    End If
+Next
+Loop
+Sheet1.Range("F1").Value = "IDLE"
+End Sub
+
+Sub stop_ping()
+Sheet1.Range("F1").Value = "STOP"
+Dim objreq As Object
+Dim strcht As String
+Dim strmesg As String
+Dim strpost As String
+strcht = Sheets("DATA").Range("B2").Value
+strmesg = "bot status is offline"
+strpost = "chat_id=" & strcht & "&text=" & strmesg
+Set objreq = CreateObject("MSXML2.XMLHTTP")
+With objreq
+    .Open "POST", "https://api.telegram.org/bot1768642893:AAEpULFFTACJ-embQvIfEhymANLIyDwFfAM/sendMessage?", False
+    .setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+    .send (strpost)
+    End With
+End Sub
+
+Function SendMessage(strPostData)
+Dim objRequest As Object
+
+Set objRequest = CreateObject("MSXML2.XMLHTTP")
+
+With objRequest
+    .Open "POST", "https://api.telegram.org/bot1768642893:AAEpULFFTACJ-embQvIfEhymANLIyDwFfAM/sendMessage?", False
+    .setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+    .send (strPostData)
+
+End With
+
+End Function
